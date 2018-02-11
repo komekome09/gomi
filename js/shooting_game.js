@@ -1,16 +1,18 @@
 'use strict';
 
-class Title extends Actor{
-    constructor(x, y){
+class TextLabel extends Actor{
+    constructor(x, y, text){
         const hitArea = new Rectangle(0, 0, 0, 0);
         super(x, y, hitArea);
+
+        this._text = text;
     }
 
     render(target){
         const context = target.getContext('2d');
         context.font = '25px sans-serif';
         context.fillStyle = 'white';
-        context.fillText("Danmaku STG", this.x, this.y);
+        context.fillText(this._text, this.x, this.y);
     }
 }
 
@@ -203,7 +205,7 @@ class DanmakuStgMainScene extends Scene{
 class DanmakuStgTitleScene extends Scene{
     constructor(renderingTarget){
         super('Title', 'black', renderingTarget);
-        const title = new Title(65, 200);
+        const title = new TextLabel(65, 200, 'Danmaku STG');
         this.add(title);
     }
 
