@@ -92,21 +92,65 @@ class Fighter extends SpriteActor{
 }
 
 class EnemyBullet extends SpriteActor{
-    constructor(x, y, velocityX, velocityY){
+    constructor(x, y, velocityX, velocityY, isFrozen = false){
         const sprite = new Sprite(assets.get('sprite'), new Rectangle(16, 16, 16, 16));
         const hitArea = new Rectangle(4, 4, 8, 8);
         super(x, y, sprite, hitArea, ['enemyBullet']);
 
         this.velocityX = velocityX;
         this.velocityY = velocityY;
+        this.isFrozen = isFrozen;
     }
 
     update(gameInfo, input){
-        this.x += this.velocityX;
-        this.y += this.velocityY;
+        if(!this.isFrozen){
+            this.x += this.velocityX;
+            this.y += this.velocityY;
+        }
 
         if(this.isOutOfBounds(gameInfo.screenRectangle))
             this.destroy();
+    }
+}
+
+class SpiralBulletsSpawner extends Actor{
+    constructor(x, y, rotations){
+        const hitArea = new Rectangle(0 ,0, 0, 0);
+        super(x, y, hitArea);
+
+        this._rotations = rotations;
+        this._interval = 2;
+        this._timeCount = 0;
+        this._angle = 0;
+        this._radius = 10;
+        this._bullets = [];
+    }
+
+    update(gameInfo, input){
+        const rotation = this._angle/360;
+        if(rotation >= this._rotations){
+            this._bullets.forEach((b) => b.isFrozen = false);
+            this.destroy();
+            return;
+        }
+
+        // インターバルだけ待つ
+        this._timeCount++;
+        if(this._timeCount < this._interval) return;
+        this._timeCount = 0;
+
+        this._angle += 10;
+        this._radius += 1;
+
+        const rad = this._angle / 180 * Math.PI;
+        const bX = this.x + Math.cos(rad) * this._radius;
+        const bY = this.y + Math.sin(rad) * this._radius;
+        const bSpdX = Math.random() * 2 - 1; // -1...1
+        const bSpdY = Math.random() * 2 - 1;
+        const bullet = new EnemyBullet(bX, bY, bSpdX, bSpdY, true);
+        this._bullets.push(bullet);
+
+        this.spawnActor(bullet);
     }
 }
 
@@ -119,9 +163,10 @@ class Enemy extends SpriteActor{
         this.maxHp = 50;
         this.currentHp = this.maxHp;
 
-        this._interval = 120;
+        this._interval = 500;
         this._timeCount = 0;
         this._velocityX = 0.3;
+        this._count = 0;
 
         this.addEventListener('hit', (e) =>{
             if(e.target.hasTag('playerBullet')){
@@ -140,20 +185,27 @@ class Enemy extends SpriteActor{
         this.spawnActor(bullet);
     }
 
-    shootCircularBullets(num, speed){
+    shootCircularBullets(num, speed, initialDegree){
         const degree = 360/num;
         for (let i = 0; i < num; i++) {
-            this.shootBullet(degree*i,speed);
+            this.shootBullet(initialDegree + degree * i,speed);
         }
     }
     
     update (gameInfo, input){
-        this.x += this._velocityX;
+        //this.x += this._velocityX;
         if(this.x <= 100 || this.x >= 200) this._velocityX *= -1;
         
         this._timeCount++;
+        if(false && this._timeCount > this._interval){
+            this._count += 10;
+            this.shootCircularBullets(10, 1, this._count);
+            this._timeCount = 0;
+        }
+
         if(this._timeCount > this._interval){
-            this.shootCircularBullets(15, 1);
+            const spawner = new SpiralBulletsSpawner(this.x, this.y, 4);
+            this.spawnActor(spawner);
             this._timeCount = 0;
         }
         
