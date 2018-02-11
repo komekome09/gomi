@@ -113,6 +113,44 @@ class EnemyBullet extends SpriteActor{
     }
 }
 
+class FireworksBullet extends EnemyBullet{
+    constructor(x, y, velocityX, velocityY, explosionTime){
+        super(x, y, velocityX, velocityY);
+
+        this._deltaTime = 0;
+        this.explosionTime = explosionTime;
+    }
+
+    shootBullet(degree, speed){
+        const rad = degree / 180 * Math.PI;
+        const velocityX = Math.cos(rad) * speed;
+        const velocityY = Math.sin(rad) * speed;
+
+        const bullet = new EnemyBullet(this.x, this.y, velocityX, velocityY);
+        this.spawnActor(bullet);
+    }
+
+    shootCircularBullets(num, speed){
+        const degree = 360 / num;
+        for (let index = 0; index < num; index++) {
+            this.shootBullet(degree * index, speed);
+        }
+    }
+
+    update(gameInfo, input){
+        super.update(gameInfo, input);
+
+        // 経過時間を記録する
+        this._deltaTime ++;
+
+        // 爆発時間を越えたら弾を生成して自身を破棄する
+        if(this._deltaTime > this.explosionTime){
+            this.shootCircularBullets(10, 2);
+            this.destroy();
+        }
+    }
+}
+
 class SpiralBulletsSpawner extends Actor{
     constructor(x, y, rotations){
         const hitArea = new Rectangle(0 ,0, 0, 0);
@@ -163,7 +201,7 @@ class Enemy extends SpriteActor{
         this.maxHp = 50;
         this.currentHp = this.maxHp;
 
-        this._interval = 500;
+        this._interval = 10;
         this._timeCount = 0;
         this._velocityX = 0.3;
         this._count = 0;
@@ -193,7 +231,7 @@ class Enemy extends SpriteActor{
     }
     
     update (gameInfo, input){
-        //this.x += this._velocityX;
+        this.x += this._velocityX;
         if(this.x <= 100 || this.x >= 200) this._velocityX *= -1;
         
         this._timeCount++;
@@ -203,9 +241,18 @@ class Enemy extends SpriteActor{
             this._timeCount = 0;
         }
 
-        if(this._timeCount > this._interval){
+        if(false && this._timeCount > this._interval){
             const spawner = new SpiralBulletsSpawner(this.x, this.y, 4);
             this.spawnActor(spawner);
+            this._timeCount = 0;
+        }
+
+        if(this._timeCount > this._interval){
+            const spdX = Math.random() * 4 - 2; //-2...+2
+            const spdY = Math.random() * 4 - 2;
+            const explosionTime = 50;
+            const bullet = new FireworksBullet(this.x, this.y, spdX, spdY, explosionTime);
+            this.spawnActor(bullet);
             this._timeCount = 0;
         }
         
