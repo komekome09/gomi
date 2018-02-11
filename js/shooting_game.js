@@ -190,6 +190,22 @@ class EnemyHpBar extends Actor{
     }
 }
 
+class DanmakuStgEndScene extends Scene{
+    constructor(renderingTarget){
+        super('Game Clear', 'black', renderingTarget);
+        const text = new TextLabel(60, 200, "Game Clear!");
+        this.add(text);
+    }
+}
+
+class DanmakuStgGameOverScene extends Scene{
+    constructor(renderingTarget){
+        super('Game Over', 'black', renderingTarget);
+        const text = new TextLabel(70, 200, 'Game Over');
+        this.add(text);
+    }
+}
+
 class DanmakuStgMainScene extends Scene{
     constructor(renderingTarget){
         super('Main', 'black', renderingTarget);
@@ -199,6 +215,16 @@ class DanmakuStgMainScene extends Scene{
         this.add(fighter);
         this.add(enemy)
         this.add(hpBar);
+
+        fighter.addEventListener('destroy', (e) => {
+            const scene = new DanmakuStgGameOverScene(this.renderingTarget);
+            this.changeScene(scene);
+        });
+
+        enemy.addEventListener('destroy', (e) => {
+            const scene = new DanmakuStgEndScene(this.renderingTarget);
+            this.changeScene(scene);
+        });
     }
 }
 
