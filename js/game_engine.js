@@ -64,6 +64,12 @@ class EventDispatcher{
         this._eventListeners[type].push(callback);
     }
 
+    deleteEventListener(type){
+        if(this._eventListeners[type] == undefined) return;
+        this._eventListeners[type].pop();
+        this._eventListeners[type] = undefined;
+    }
+
     dispatchEvent(type, event){
         const listeners = this._eventListeners[type];
         if(listeners != undefined)
