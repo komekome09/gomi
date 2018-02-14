@@ -151,10 +151,9 @@ class FireworksBullet extends EnemyBullet{
     }
 }
 
-class SpiralBulletsSpawner extends Actor{
-    constructor(x, y, rotations){
-        const hitArea = new Rectangle(0 ,0, 0, 0);
-        super(x, y, hitArea);
+class SpiralBulletsSpawner extends EnemyBullet{
+    constructor(x, y, velocityX, velocityY, rotations){
+        super(x, y, velocityX, velocityY);
 
         this._rotations = rotations;
         this._interval = 2;
@@ -164,15 +163,26 @@ class SpiralBulletsSpawner extends Actor{
         this._bullets = [];
     }
 
+    shootBullet(){
+        const rad = this._angle / 180 * Math.PI;
+        const bX = this.x + Math.cos(rad) * this._radius;
+        const bY = this.y + Math.sin(rad) * this._radius;
+        const bSpdX = Math.random() * 2 - 1; // -1..1
+        const bSpdY = Math.random() * 2 - 1;
+        const bullet = new EnemyBullet(bX, bY, bSpdX, bSpdY, true);
+        this._bullets.push(bullet);
+        this.spawnActor(bullet);
+    }
+
     update(gameInfo, input){
         const rotation = this._angle/360;
+        console.log(rotation, this._rotations);
         if(rotation >= this._rotations){
             this._bullets.forEach((b) => b.isFrozen = false);
             this.destroy();
             return;
         }
 
-        // インターバルだけ待つ
         this._timeCount++;
         if(this._timeCount < this._interval) return;
         this._timeCount = 0;
@@ -180,15 +190,7 @@ class SpiralBulletsSpawner extends Actor{
         this._angle += 10;
         this._radius += 1;
 
-        const rad = this._angle / 180 * Math.PI;
-        const bX = this.x + Math.cos(rad) * this._radius;
-        const bY = this.y + Math.sin(rad) * this._radius;
-        const bSpdX = Math.random() * 2 - 1; // -1...1
-        const bSpdY = Math.random() * 2 - 1;
-        const bullet = new EnemyBullet(bX, bY, bSpdX, bSpdY, true);
-        this._bullets.push(bullet);
-
-        this.spawnActor(bullet);
+        this.shootBullet();
     }
 }
 
@@ -201,7 +203,7 @@ class Enemy extends SpriteActor{
         this.maxHp = 50;
         this.currentHp = this.maxHp;
 
-        this._interval = 10;
+        this._interval = 500;
         this._timeCount = 0;
         this._velocityX = 0.3;
         this._count = 0;
@@ -241,13 +243,13 @@ class Enemy extends SpriteActor{
             this._timeCount = 0;
         }
 
-        if(false && this._timeCount > this._interval){
-            const spawner = new SpiralBulletsSpawner(this.x, this.y, 4);
+        if(this._timeCount > this._interval){
+            const spawner = new SpiralBulletsSpawner(this.x, this.y, this._velocityX, 0, 4);
             this.spawnActor(spawner);
             this._timeCount = 0;
         }
 
-        if(this._timeCount > this._interval){
+        if(false && this._timeCount > this._interval){
             const spdX = Math.random() * 4 - 2; //-2...+2
             const spdY = Math.random() * 4 - 2;
             const explosionTime = 50;
