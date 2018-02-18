@@ -176,7 +176,6 @@ class SpiralBulletsSpawner extends EnemyBullet{
 
     update(gameInfo, input){
         const rotation = this._angle/360;
-        console.log(rotation, this._rotations);
         if(rotation >= this._rotations){
             this._bullets.forEach((b) => b.isFrozen = false);
             this.destroy();
@@ -237,19 +236,17 @@ class Enemy extends SpriteActor{
         if(this.x <= 100 || this.x >= 200) this._velocityX *= -1;
         
         this._timeCount++;
-        if(false && this._timeCount > this._interval){
+        if(this._timeCount % 10 == 0){
             this._count += 10;
             this.shootCircularBullets(10, 1, this._count);
-            this._timeCount = 0;
+        }
+
+        if(this._timeCount % 250 == 0){
+            const spawner = new SpiralBulletsSpawner(this.x, this.y, this._velocityX, 0, 4);
+            this.spawnActor(spawner);
         }
 
         if(this._timeCount > this._interval){
-            const spawner = new SpiralBulletsSpawner(this.x, this.y, this._velocityX, 0, 4);
-            this.spawnActor(spawner);
-            this._timeCount = 0;
-        }
-
-        if(false && this._timeCount > this._interval){
             const spdX = Math.random() * 4 - 2; //-2...+2
             const spdY = Math.random() * 4 - 2;
             const explosionTime = 50;
