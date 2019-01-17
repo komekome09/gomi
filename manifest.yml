@@ -1,0 +1,9 @@
+applications:
+    - path: .
+      name: gomi
+      environment_json: {}
+      buildpack: https://github.com/cloudfoundry/staticfile-buildpack.git
+      memory: 128M
+      instances: 1
+      disk_quota: 512M
+      services: []
